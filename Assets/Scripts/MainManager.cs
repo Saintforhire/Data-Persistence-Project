@@ -3,25 +3,34 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEditor;
 
 public class MainManager : MonoBehaviour
 {
+    public GameManager gameManager;
+
     public Brick BrickPrefab;
     public int LineCount = 6;
     public Rigidbody Ball;
 
     public Text ScoreText;
+    public Text bestScoreText;
     public GameObject GameOverText;
     
+    public string highScoreName;
     private bool m_Started = false;
     private int m_Points;
     
     private bool m_GameOver = false;
 
-    
     // Start is called before the first frame update
     void Start()
     {
+        string name = GameManager.Instance.userName;
+        string highScoreName = GameManager.Instance.highScoreName;
+        bestScoreText.text = "High Score: " + highScoreName + ": " + GameManager.Instance.highScore;
+        ScoreText.text = "Score: " + name + ": " + m_Points;
+
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
         
@@ -60,16 +69,31 @@ public class MainManager : MonoBehaviour
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
         }
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            GameManager.Instance.SaveScoreAndName();
+            EditorApplication.ExitPlaymode();
+        }
     }
 
     void AddPoint(int point)
     {
+        string name = GameManager.Instance.userName;
         m_Points += point;
-        ScoreText.text = $"Score : {m_Points}";
+        // ScoreText.text = $"Score : {m_Points}";
+        ScoreText.text = "Score: " + name + ": " + m_Points;
     }
 
     public void GameOver()
     {
+        string name = GameManager.Instance.userName;
+        if (m_Points > GameManager.Instance.highScore)
+        {
+            GameManager.Instance.NewScore(m_Points);
+            GameManager.Instance.HighScoreUserName(name);
+            GameManager.Instance.SaveScoreAndName();
+        }
         m_GameOver = true;
         GameOverText.SetActive(true);
     }
